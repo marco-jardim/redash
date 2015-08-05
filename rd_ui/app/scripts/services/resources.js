@@ -538,6 +538,14 @@
     return DataSourceResource;
   };
 
+  var User = function ($resource) {
+    var actions = {};
+
+    var UserResource = $resource('/api/users/:id', {id: '@id'}, actions);
+
+    return UserResource;
+  };
+
   var AlertSubscription = function ($resource) {
     var resource = $resource('/api/alerts/:alertId/subscriptions/:userId', {alertId: '@alert_id', userId: '@user.id'});
     return resource;
@@ -588,6 +596,7 @@
       .factory('QueryResult', ['$resource', '$timeout', '$q', QueryResult])
       .factory('Query', ['$resource', 'QueryResult', 'DataSource', Query])
       .factory('DataSource', ['$resource', DataSource])
+      .factory('User', ['$resource', User])
       .factory('Alert', ['$resource', '$http', Alert])
       .factory('AlertSubscription', ['$resource', AlertSubscription])
       .factory('Widget', ['$resource', 'Query', Widget]);

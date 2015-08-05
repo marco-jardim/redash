@@ -101,6 +101,15 @@ angular.module('redash', [
         controller: 'DataSourcesCtrl'
       });
 
+      $routeProvider.when('/users/:dataSourceId', {
+        templateUrl: '/views/users/edit.html',
+        controller: 'UserCtrl'
+      });
+      $routeProvider.when('/users', {
+        templateUrl: '/views/users/list.html',
+        controller: 'UsersCtrl'
+      });
+
       $routeProvider.when('/', {
         templateUrl: '/views/index.html',
         controller: 'IndexCtrl'

@@ -539,7 +539,12 @@
   };
 
   var User = function ($resource) {
-    var actions = {};
+    var actions = {
+      'get': {'method': 'GET', 'cache': false, 'isArray': false},
+      'getAll': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users'},
+      'getChilds': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users/:id/childs'},
+      'getPermissions': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users/:id/permissions'}
+    };
 
     var UserResource = $resource('/api/users/:id', {id: '@id'}, actions);
 

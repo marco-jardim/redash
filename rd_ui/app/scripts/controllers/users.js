@@ -1,47 +1,72 @@
 (function () {
-  var UsersCtrl = function ($scope, $location, growl, Events, User) {
-    Events.record(currentUser, "view", "page", "manage/users");
-    $scope.$parent.pageTitle = "Users";
+  var UsersCtrl = function ($scope, $location, growl, Events, User, $log) {
 
-    $scope.users = User.query();
+    $log.debug("we are on UsersCtrl");
 
-    $scope.openUser = function(user) {
-      $location.path('/users/' + user.id);
+    $scope.users = User.getAll();
+
+    $scope.gridConfig = {
+      isPaginationEnabled: true,
+      itemsByPage: 50,
+      maxSize: 8,
     };
 
-    $scope.deleteUser = function(event, user) {
-      event.stopPropagation();
-      Events.record(currentUser, "delete", "user", user.id);
-      user.$delete(function(resource) {
-        growl.addSuccessMessage("User deleted succesfully.");
-        this.$parent.users = _.without(this.users, resource);
-      }.bind(this), function(httpResponse) {
-        console.log("Failed to delete data source: ", httpResponse.status, httpResponse.statusText, httpResponse.data);
-        growl.addErrorMessage("Failed to delete data source.");
-      });
-    }
+    $scope.gridColumns = [
+      {
+        "label": "Name",
+        "map": "name",
+        "cellTemplate": '<a href="/users/{{dataRow.id}}">{{dataRow.name}}</a> (<a href="/queries/{{dataRow.query.id}}">query</a>)'
+      },
+      {
+        'label': 'Email',
+        'map': 'user.name'
+      },
+      {
+        'label': 'Groups',
+        'cellTemplate': '{{dataRow.groups}}'
+      },
+      {
+        'label': 'Countries',
+        'cellTemplate': '{{dataRow.countries}}'
+      },
+      {
+        'label': 'Created At',
+        'cellTemplate': '{{dataRow.created_at}}'
+      },
+      {
+        'label': 'Updated At',
+        'cellTemplate': '{{dataRow.updated_at}}'
+      },
+      {
+        'label': 'Status',
+        'cellTemplate': '{{dataRow.status}}'
+      }
+    ];
+
   };
 
-  var UserCtrl = function ($scope, $routeParams, $http, $location, Events, User) {
-    Events.record(currentUser, "view", "page", "manage/user");
-    $scope.$parent.pageTitle = "Users";
+  var UserCtrl = function ($scope, $routeParams, $http, $location, Events, User, $log) {
 
-    $scope.userId = $routeParams.userId;
+    $log.debug("we are on UserCtrl");
 
-    if ($scope.userId == "new") {
-      $scope.user = new User({options: {}});
-    } else {
-      $scope.user = User.get({id: $routeParams.userId});
-    }
-
-    $scope.$watch('user.id', function(id) {
-      if (id != $scope.userId && id !== undefined) {
-        $location.path('/users/' + id).replace();
+    $scope.saveChanges = function() {
+      if ($scope.alert.name === undefined || $scope.alert.name === '') {
+        $scope.alert.name = $scope.getDefaultName();
       }
-    });
+
+      $scope.alert.$save(function(alert) {
+        growl.addSuccessMessage("Saved.");
+        if ($scope.alertId === "new") {
+           $location.path('/users/' + alert.id).replace();
+        }
+      }, function() {
+        growl.addErrorMessage("Failed saving alert.");
+      });
+    };
+
   };
 
   angular.module('redash.controllers')
-    .controller('UsersCtrl', ['$scope', '$location', 'growl', 'Events', 'User', UsersCtrl])
-    .controller('UserCtrl', ['$scope', '$routeParams', '$http', '$location', 'Events', 'User', UserCtrl])
+    .controller('UsersCtrl', ['$scope', '$location', 'growl', 'Events', 'User', '$log', UsersCtrl])
+    .controller('UserCtrl', ['$scope', '$routeParams', '$http', '$location', 'Events', 'User', '$log', UserCtrl])
 })();

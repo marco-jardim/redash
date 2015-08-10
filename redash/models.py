@@ -240,6 +240,56 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     def verify_password(self, password):
         return self.password_hash and pwd_context.verify(password, self.password_hash)
 
+class Area(BaseModel):
+
+    class Meta:
+        db_table = 'areas'
+
+    subregion_code = peewee.CharField(max_length=250, null=True)
+    region_code = peewee.CharField(max_length=250, null=True)
+    region_name = peewee.CharField(max_length=250, null=True)
+    subregion_name = peewee.CharField(max_length=250, null=True)
+    bool_active = peewee.CharField(max_length=250, null=True)
+    telephone_code = peewee.CharField(max_length=250, null=True)
+    continent_code = peewee.CharField(max_length=250, null=True)
+    has_billing = peewee.CharField(max_length=250, null=True)
+    country_capital = peewee.CharField(max_length=250, null=True)
+    country_name = peewee.CharField(max_length=250, null=True)
+    city_name = peewee.CharField(max_length=250, null=True)
+    currency_code = peewee.CharField(max_length=250, null=True)
+    country_code = peewee.CharField(max_length=250, null=True)
+    subregion_manager = peewee.CharField(max_length=250, null=True)
+    continent_name = peewee.CharField(max_length=250, null=True)
+    timezone = peewee.CharField(max_length=250, null=True)
+    regional_email_group = peewee.CharField(max_length=250, null=True)
+    city_code = peewee.CharField(max_length=250, null=True)
+
+    def to_dict(self):
+        return {
+            'subregion_code': self.subregion_code,
+            'region_code': self.region_code,
+            'region_name': self.region_name,
+            'subregion_name': self.subregion_name,
+            'bool_active': self.bool_active,
+            'telephone_code': self.telephone_code,
+            'continent_code': self.continent_code,
+            'has_billing': self.has_billing,
+            'country_capital': self.country_capital,
+            'country_name': self.country_name,
+            'city_name': self.city_name,
+            'currency_code': self.currency_code,
+            'country_code': self.country_code,
+            'subregion_manager': self.subregion_manager,
+            'continent_name': self.continent_name,
+            'timezone': self.timezone,
+            'regional_email_group': self.regional_email_group,
+            'city_code': self.city_code
+        }
+
+    def __unicode__(self):
+        return unicode(self.city_code)
+
+
 
 class ActivityLog(BaseModel):
     QUERY_EXECUTION = 1

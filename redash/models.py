@@ -138,6 +138,7 @@ class Group(BaseModel):
     name = peewee.CharField(max_length=100)
     permissions = ArrayField(peewee.CharField, default=DEFAULT_PERMISSIONS)
     tables = ArrayField(peewee.CharField)
+    countries = ArrayField(peewee.CharField)
     created_at = DateTimeTZField(default=datetime.datetime.now)
 
     class Meta:
@@ -149,6 +150,7 @@ class Group(BaseModel):
             'name': self.name,
             'permissions': self.permissions,
             'tables': self.tables,
+            'countries': self.countries,
             'created_at': self.created_at
         }
 
@@ -160,20 +162,28 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     DEFAULT_GROUPS = ['default']
 
     id = peewee.PrimaryKeyField()
+    parent_user_id = peewee.IntegerField()
     name = peewee.CharField(max_length=320)
     email = peewee.CharField(max_length=320, index=True, unique=True)
     password_hash = peewee.CharField(max_length=128, null=True)
     groups = ArrayField(peewee.CharField, default=DEFAULT_GROUPS)
+    countries = ArrayField(peewee.CharField)
     api_key = peewee.CharField(max_length=40, unique=True)
 
     class Meta:
         db_table = 'users'
+
+    @classmethod
+    def all(cls):
+        return cls.select().order_by(cls.id.asc())
 
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
             'email': self.email,
+            'groups': self.groups,
+            'countries': self.countries,
             'gravatar_url': self.gravatar_url,
             'updated_at': self.updated_at,
             'created_at': self.created_at
@@ -208,6 +218,10 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
                                         Group.select().where(Group.name << self.groups)])])
 
         return self._allowed_tables
+
+    @property
+    def allowed_countries(self):
+        return self.countries
 
     @classmethod
     def get_by_email(cls, email):
@@ -789,7 +803,7 @@ class Widget(ModelTimestampsMixin, BaseModel):
             d['visualization'] = self.visualization.to_dict()
 
         return d
-    
+
     def __unicode__(self):
         return u"%s" % self.id
 

@@ -1,11 +1,32 @@
 <div class="container">
     <ol class="breadcrumb">
-        <li><a href="/data_sources">Users</a></li>
+        <li><a href="/users">Users</a></li>
         <li class="active">{{user.name || "New"}}</li>
     </ol>
     <div class="row">
         <div class="col-md-8">
-            <data-source-form data-data-source="user" />
+            <form name="userForm" ng-submit="saveChanges()" class="form">
+                <div class="form-group">
+                    <label>Query</label>
+                    <ui-select ng-model="alert.query" reset-search-input="false" on-select="onQuerySelected($item)">
+                        <ui-select-match placeholder="Search a query by name">{{$select.selected.name}}</ui-select-match>
+                        <ui-select-choices repeat="q in queries"
+                                           refresh="searchQueries($select.search)"
+                                           refresh-delay="0">
+                            <div ng-bind-html="q.name | highlight: $select.search | trustAsHtml"></div>
+                        </ui-select-choices>
+                    </ui-select>
+                </div>
+
+                <div class="form-group" ng-show="selectedQuery">
+                    <label>Name</label>
+                    <input type="string" placeholder="{{getDefaultName()}}" class="form-control" ng-model="alert.name">
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" ng-disabled="!userForm.$valid">Save</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

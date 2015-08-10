@@ -1,20 +1,24 @@
 <form name="userForm" ng-submit="saveChanges()">
+    
     <div class="form-group">
         <label for="userName">Name</label>
         <input type="string" class="form-control" name="userName" ng-model="user.name" required>
     </div>
+    
     <div class="form-group">
-        <label for="type">Type</label>
-        <select name="type" class="form-control" ng-options="type.type as type.name for type in userTypes" ng-model="user.type"></select>
+        <label for="userEmail">Email</label>
+        <input type="string" class="form-control" name="userEmail" ng-model="user.email" required>
     </div>
-    <div class="form-group" ng-class='{"has-error": !inner.input.$valid}' ng-form="inner" ng-repeat="(name, input) in type.configuration_schema.properties">
-        <label>{{input.title || name | capitalize}}</label>
-        <input name="input" type="{{input.type}}" class="form-control" ng-model="user.options[name]" ng-required="input.required"
-                ng-if="input.type !== 'file'" accesskey="tab">
+    
+    <div class="form-group">
+        <label for="userCountries">Countries</label>
+        <input type="string" class="form-control" name="userCountries" ng-model="user.email" required>
+    </div>
 
-        <input name="input" type="file" class="form-control" ng-model="files[name]" ng-required="input.required"
-               base-sixty-four-input
-               ng-if="input.type === 'file'">
+    <div class="form-group">
+        <label for="userGroups">Groups</label>
+        <input type="string" class="form-control" name="userGroups" ng-model="user.email" required>
     </div>
+    
     <button class="btn btn-primary" ng-disabled="!userForm.$valid">Save</button>
 </form>

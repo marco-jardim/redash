@@ -142,6 +142,24 @@ def create_query_route():
     return redirect('/queries/{}'.format(query.id), 303)
 
 
+@app.route('/users/new', methods=['POST'])
+@login_required
+def create_user_route():
+    query = request.form.get('user', None)
+    user_id = request.form.get('user_id', None)
+
+    if query is None or user_id is None:
+        abort(400)
+
+    query = models.User.create(name="New Query",
+                                query=query,
+                                data_source=user_id,
+                                user=current_user._get_current_object(),
+                                schedule=None)
+
+    return redirect('/users/{}'.format(query.id), 303)
+
+
 class BaseResource(Resource):
     decorators = [login_required]
 

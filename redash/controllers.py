@@ -43,6 +43,8 @@ def ping():
 @app.route('/queries/<query_id>')
 @app.route('/queries/<query_id>/<anything>')
 @app.route('/personal')
+@app.route('/users')
+@app.route('/users/<user_id>')
 @app.route('/')
 @login_required
 def index(**kwargs):
@@ -731,6 +733,54 @@ api.add_resource(AlertAPI, '/api/alerts/<alert_id>', endpoint='alert')
 api.add_resource(AlertSubscriptionListResource, '/api/alerts/<alert_id>/subscriptions', endpoint='alert_subscriptions')
 api.add_resource(AlertSubscriptionResource, '/api/alerts/<alert_id>/subscriptions/<subscriber_id>', endpoint='alert_subscription')
 api.add_resource(AlertListAPI, '/api/alerts', endpoint='alerts')
+
+
+
+
+class UserListAPI(BaseResource):
+
+    @require_permission('manage_users')
+    def post(self):
+        kwargs = request.get_json(force=True)
+        kwargs['options'] = json.dumps(kwargs['options'])
+        kwargs['id'] = kwargs.pop('user_id')
+
+        user = models.User(**kwargs)
+        user.save()
+
+        return user.to_dict(with_query=False)
+
+    @require_permission('manage_users')
+    def get(self):
+        if current_user.is_admin():
+            return [user.to_dict() for user in models.User.all()]
+        [models.User]
+
+
+class User(BaseResource):
+    @require_permission('manage_users')
+    def post(self, user_id):
+        kwargs = request.get_json(force=True)
+        if 'options' in kwargs:
+            kwargs['options'] = json.dumps(kwargs['options'])
+        kwargs.pop('id', None)
+        # kwargs.pop('user_id', None)
+
+        update = models.User.update(**kwargs).where(models.User.id == user_id)
+        update.execute()
+
+        user = models.User.get_by_id(user_id)
+
+        return user.to_dict(with_query=False)
+
+    @require_permission('manage_users')
+    def delete(self, user_id):
+        user = models.User.get(models.User.id == user_id)
+        user.delete_instance()
+
+api.add_resource(UserListAPI, '/api/users', endpoint='users')
+api.add_resource(User, '/api/users/<user_id>', endpoint='user')
+
 
 @app.route('/<path:filename>')
 def send_static(filename):

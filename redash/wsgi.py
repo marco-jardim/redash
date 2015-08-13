@@ -15,6 +15,7 @@ app = Flask(__name__,
             static_folder=settings.STATIC_ASSETS_PATH,
             static_path='/static')
 
+app.debug = True
 
 api = Api(app)
 init_admin(app)

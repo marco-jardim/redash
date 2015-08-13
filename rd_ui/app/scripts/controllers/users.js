@@ -26,6 +26,10 @@
         'map': 'user.name'
       },
       {
+        'label': 'Parent User ID',
+        'cellTemplate': '{{dataRow.parent_user_id}}'
+      },
+      {
         'label': 'Groups',
         'cellTemplate': '{{dataRow.groups}}'
       },

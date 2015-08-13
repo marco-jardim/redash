@@ -180,6 +180,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     def to_dict(self):
         return {
             'id': self.id,
+            'parent_user_id': self.parent_user_id,
             'name': self.name,
             'email': self.email,
             'groups': self.groups,

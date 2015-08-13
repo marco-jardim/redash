@@ -768,9 +768,7 @@ class UserListAPI(BaseResource):
 
     @require_permission('manage_users')
     def get(self):
-        if current_user.is_admin():
-            return [user.to_dict() for user in models.User.all()]
-        [models.User]
+        return [user.to_dict() for user in models.User.all()]
 
 
 class User(BaseResource):

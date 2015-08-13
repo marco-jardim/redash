@@ -3,7 +3,11 @@
 
     $log.debug("we are on UsersCtrl");
 
-    $scope.users = User.getAll();
+    $scope.users = [];
+
+    User.getAll(function(users){
+      $scope.users = users;
+    });
 
     $scope.gridConfig = {
       isPaginationEnabled: true,

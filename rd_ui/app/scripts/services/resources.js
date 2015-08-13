@@ -606,6 +606,10 @@
     return WidgetResource;
   }
 
+  var RequestsInterceptor = function($http, $log){
+    $log.debug("request interceptor");
+  }
+
   angular.module('redash.services')
       .factory('QueryResult', ['$resource', '$timeout', '$q', QueryResult])
       .factory('Query', ['$resource', 'QueryResult', 'DataSource', Query])
@@ -613,5 +617,7 @@
       .factory('User', ['$resource', User])
       .factory('Alert', ['$resource', '$http', Alert])
       .factory('AlertSubscription', ['$resource', AlertSubscription])
-      .factory('Widget', ['$resource', 'Query', Widget]);
+      .factory('Widget', ['$resource', 'Query', Widget])
+      .factory('RequestsInterceptor', ['$http', '$log', RequestsInterceptor])
+      ;
 })();

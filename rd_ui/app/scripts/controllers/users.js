@@ -1,5 +1,5 @@
 (function () {
-  var UsersCtrl = function ($scope, $location, growl, Events, User, $log) {
+  var UsersCtrl = function ($scope, User, $log) {
 
     $log.debug("we are on UsersCtrl");
 
@@ -19,7 +19,7 @@
       {
         "label": "Name",
         "map": "name",
-        "cellTemplate": '<a href="/users/{{dataRow.id}}">{{dataRow.name}}</a> (<a href="/queries/{{dataRow.query.id}}">query</a>)'
+        "cellTemplate": '<a href="/users/{{dataRow.id}}">{{dataRow.name}}</a>'
       },
       {
         'label': 'Email',
@@ -53,28 +53,26 @@
 
   };
 
-  var UserCtrl = function ($scope, $routeParams, $http, $location, Events, User, $log) {
+  var UserCtrl = function ($scope, $routeParams, $location, $log, Events, User) {
 
     $log.debug("we are on UserCtrl");
+    $scope.$parent.pageTitle = "Users";
 
-    $scope.saveChanges = function() {
-      if ($scope.alert.name === undefined || $scope.alert.name === '') {
-        $scope.alert.name = $scope.getDefaultName();
-      }
+    $scope.alertId = $routeParams.alertId;
 
-      $scope.alert.$save(function(alert) {
-        growl.addSuccessMessage("Saved.");
-        if ($scope.alertId === "new") {
-           $location.path('/users/' + alert.id).replace();
-        }
-      }, function() {
-        growl.addErrorMessage("Failed saving alert.");
+    if ($scope.alertId === "new") {
+      Events.record(currentUser, 'view', 'page', 'users/new');
+      $scope.alert = new Alert({options: {}});
+    } else {
+      Events.record(currentUser, 'view', 'alert', $scope.alertId);
+      $scope.alert = Alert.get({id: $scope.alertId}, function(alert) {
+        $scope.onQuerySelected(new Query($scope.alert.query));
       });
-    };
+    }
 
   };
 
   angular.module('redash.controllers')
-    .controller('UsersCtrl', ['$scope', '$location', 'growl', 'Events', 'User', '$log', UsersCtrl])
-    .controller('UserCtrl', ['$scope', '$routeParams', '$http', '$location', 'Events', 'User', '$log', UserCtrl])
+    .controller('UsersCtrl', ['$scope', 'User', '$log', UsersCtrl])
+    .controller('UserCtrl', ['$scope', '$routeParams', '$location', '$log', 'Events', 'User', UserCtrl])
 })();

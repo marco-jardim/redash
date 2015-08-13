@@ -90,6 +90,7 @@
         </form>
         <ul class="nav navbar-nav navbar-right">
             <p class="navbar-text avatar" ng-show="currentUser.id" ng-cloak>
+            <span class="label label-info" style="margin-right: 10px;">{{currentUser.name}}</span>
                 <img ng-src="{{currentUser.gravatar_url}}" class="img-circle" alt="{{currentUser.name}}"/>
                 <a target="_self" href="/logout" id="logout" title="Logout">
                     <span class="glyphicon glyphicon-log-out"></span>
@@ -143,7 +144,7 @@
 <script src="/bower_components/bucky/bucky.js"></script>
 <script src="/bower_components/pace/pace.js"></script>
 <script src="/bower_components/mustache/mustache.js"></script>
-<script src="/bower_components/canvg/rgbcolor.js"></script> 
+<script src="/bower_components/canvg/rgbcolor.js"></script>
 <script src="/bower_components/canvg/StackBlur.js"></script>
 <script src="/bower_components/canvg/canvg.js"></script>
 <script src="/bower_components/leaflet/dist/leaflet.js"></script>

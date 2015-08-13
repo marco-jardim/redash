@@ -15,8 +15,11 @@ angular.module('redash', [
     'ngRoute',
     'ui.select',
     'naif.base64'
-  ]).config(['$routeProvider', '$locationProvider', '$compileProvider', 'growlProvider', 'uiSelectConfig',
-    function ($routeProvider, $locationProvider, $compileProvider, growlProvider, uiSelectConfig) {
+  ]).config(['$routeProvider', '$locationProvider', '$compileProvider', 'growlProvider', 'uiSelectConfig', '$httpProvider',
+    function ($routeProvider, $locationProvider, $compileProvider, growlProvider, uiSelectConfig, $httpProvider) {
+
+      // $httpProvider.interceptors.push('RequestsInterceptor');
+
       if (featureFlags.clientSideMetrics) {
         Bucky.setOptions({
           host: '/api/metrics'

@@ -771,21 +771,28 @@ class UserListAPI(BaseResource):
         return [user.to_dict() for user in models.User.all()]
 
 
-class User(BaseResource):
+class UserAPI(BaseResource):
+
+    @require_permission('manage_users')
+    def get(self, user_id):
+        user = models.User.get_by_id(user_id)
+        return user.to_dict()
+
     @require_permission('manage_users')
     def post(self, user_id):
         kwargs = request.get_json(force=True)
         if 'options' in kwargs:
             kwargs['options'] = json.dumps(kwargs['options'])
         kwargs.pop('id', None)
-        # kwargs.pop('user_id', None)
+        kwargs.pop('gravatar_url', None)
+        logging.info(kwargs)
 
         update = models.User.update(**kwargs).where(models.User.id == user_id)
         update.execute()
 
         user = models.User.get_by_id(user_id)
 
-        return user.to_dict(with_query=False)
+        return user.to_dict()
 
     @require_permission('manage_users')
     def delete(self, user_id):
@@ -793,7 +800,7 @@ class User(BaseResource):
         user.delete_instance()
 
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
-api.add_resource(User, '/api/users/<user_id>', endpoint='user')
+api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
 
 
 @app.route('/<path:filename>')

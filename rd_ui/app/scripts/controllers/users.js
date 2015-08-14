@@ -1,7 +1,7 @@
 (function () {
-  var UsersCtrl = function ($scope, User, $log) {
+  var UsersCtrl = function ($scope, $log, User) {
 
-    $log.debug("we are on UsersCtrl");
+    // $log.debug("we are on UsersCtrl");
 
     $scope.users = [];
 
@@ -54,7 +54,7 @@
 
   };
 
-  var UserCtrl = function ($scope, $routeParams, $location, $log, growl, Events, User) {
+  var UserCtrl = function ($scope, $routeParams, $location, $log, growl, Events, User, Country) {
 
     $log.debug("we are on UserCtrl");
     $scope.$parent.pageTitle = "Users";
@@ -62,6 +62,7 @@
     $scope.userId = $routeParams.userId;
 
     if ($scope.userId === "new") {
+      $scope.countries = currentUser.countries;
       Events.record(currentUser, 'view', 'page', 'users/new');
       $scope.user = new User({options: {}});
     } else {
@@ -74,22 +75,34 @@
 
     $scope.saveChanges = function() {
       if ($scope.user.name === undefined || $scope.user.name === '') {
-        $scope.user.name = $scope.getDefaultName();
+        // $scope.user.name = $scope.getDefaultName();
       }
+      countries = [];
+      oldUserCountriesObj = $scope.user.countries;
 
-      $scope.user.$save(function(alert) {
+      _.each($scope.user.countries, function(country){
+        countries.push(country['code']);
+      });
+
+      $scope.user.countries = countries;
+
+      $scope.user.$save(function(user) {
+
+        $scope.user.countries = oldUserCountriesObj;
+
         growl.addSuccessMessage("Saved.");
+
         if ($scope.userId === "new") {
-           $location.path('/users/' + alert.id).replace();
+           $location.path('/users/' + user.id).replace();
         }
+
       }, function(e) {
-        $log.info(e);
         growl.addErrorMessage("Failed saving user.");
       });
     };
   };
 
   angular.module('redash.controllers')
-    .controller('UsersCtrl', ['$scope', 'User', '$log', UsersCtrl])
-    .controller('UserCtrl', ['$scope', '$routeParams', '$location', '$log', 'growl', 'Events', 'User', UserCtrl])
+    .controller('UsersCtrl', ['$scope', '$log', 'User', UsersCtrl])
+    .controller('UserCtrl', ['$scope', '$routeParams', '$location', '$log', 'growl', 'Events', 'User', 'Country', UserCtrl])
 })();

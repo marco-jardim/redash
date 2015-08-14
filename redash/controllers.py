@@ -60,6 +60,7 @@ def index(**kwargs):
         'name': current_user.name,
         'email': current_user.email,
         'groups': current_user.groups,
+        'countries': current_user.countries,
         'permissions': current_user.permissions
     }
 

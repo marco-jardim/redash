@@ -72,8 +72,6 @@
       });
     }
 
-    growl.addSuccessMessage("Saved.");
-
     $scope.saveChanges = function() {
       if ($scope.user.name === undefined || $scope.user.name === '') {
         $scope.user.name = $scope.getDefaultName();
@@ -84,7 +82,8 @@
         if ($scope.userId === "new") {
            $location.path('/users/' + alert.id).replace();
         }
-      }, function() {
+      }, function(e) {
+        $log.info(e);
         growl.addErrorMessage("Failed saving user.");
       });
     };

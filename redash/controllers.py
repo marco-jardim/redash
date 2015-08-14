@@ -755,7 +755,7 @@ api.add_resource(AlertListAPI, '/api/alerts', endpoint='alerts')
 
 class UserListAPI(BaseResource):
 
-    @require_permission('manage_users')
+    @require_permission('create_user')
     def post(self):
         kwargs = request.get_json(force=True)
         kwargs['options'] = json.dumps(kwargs['options'])
@@ -766,24 +766,36 @@ class UserListAPI(BaseResource):
 
         return user.to_dict(with_query=False)
 
-    @require_permission('manage_users')
+    @require_permission('create_user')
     def get(self):
         return [user.to_dict() for user in models.User.all()]
 
 
 class UserAPI(BaseResource):
 
-    @require_permission('manage_users')
+    """
+    To view specific users, 'edit_user' permission is needed.
+    
+    * group management is made on /admin interface
+    
+    TODO:
+    A user can only change another user's country:
+        * if he is the manager of the new country.
+        * if the target user belongs to a country of the current_user
+    """
+
+    @require_permission('edit_user')
     def get(self, user_id):
         user = models.User.get_by_id(user_id)
         return user.to_dict()
 
-    @require_permission('manage_users')
+    @require_permission('edit_user')
     def post(self, user_id):
         kwargs = request.get_json(force=True)
         if 'options' in kwargs:
             kwargs['options'] = json.dumps(kwargs['options'])
         kwargs.pop('id', None)
+        kwargs.pop("groups") # prevent users to change groups - only admin should change
         kwargs.pop('gravatar_url', None)
         logging.info(kwargs)
 
@@ -794,7 +806,7 @@ class UserAPI(BaseResource):
 
         return user.to_dict()
 
-    @require_permission('manage_users')
+    @require_permission('admin')
     def delete(self, user_id):
         user = models.User.get(models.User.id == user_id)
         user.delete_instance()

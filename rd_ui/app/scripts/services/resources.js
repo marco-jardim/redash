@@ -547,12 +547,25 @@
     return DataSourceResource;
   };
 
-  var User = function ($resource) {
+  var User = function ($resource, $http) {
     var actions = {
       'get': {'method': 'GET', 'cache': false, 'isArray': false},
       'getAll': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users'},
       'getChilds': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users/:id/childs'},
-      'getPermissions': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users/:id/permissions'}
+      'getPermissions': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users/:id/permissions'},
+      // 'save': {
+      //   method: 'POST',
+      //   transformRequest: [function(data) {
+      //     var newData = _.extend({}, data);
+      //     if (newData.query_id === undefined) {
+      //       newData.query_id = newData.query.id;
+      //       delete newData.query;
+      //     }
+
+      //     return newData;
+      //   }].concat($http.defaults.transformRequest)
+      // }
+
     };
 
     var UserResource = $resource('/api/users/:id', {id: '@id'}, actions);
@@ -566,6 +579,7 @@
   };
 
   var Alert = function ($resource, $http) {
+
     var actions = {
       save: {
         method: 'POST',
@@ -580,6 +594,7 @@
         }].concat($http.defaults.transformRequest)
       }
     };
+
     var resource = $resource('/api/alerts/:id', {id: '@id'}, actions);
 
     return resource;
@@ -629,10 +644,11 @@
                 growl.addErrorMessage("You are unable to view this resource");
             }
             else{
+              $log.info(rejection);
               $log.info(":D something unexpected on the authHttpResponseInterceptor");
             }
 
-            $log.debug("============ --- authHttpResponseInterceptor --- ============");
+            $log.debug("\n\n");
 
             return $q.reject(rejection);
         }
@@ -644,7 +660,7 @@
       .factory('QueryResult', ['$resource', '$timeout', '$q', QueryResult])
       .factory('Query', ['$resource', 'QueryResult', 'DataSource', Query])
       .factory('DataSource', ['$resource', DataSource])
-      .factory('User', ['$resource', User])
+      .factory('User', ['$resource', '$http', User])
       .factory('Alert', ['$resource', '$http', Alert])
       .factory('AlertSubscription', ['$resource', AlertSubscription])
       .factory('Widget', ['$resource', 'Query', Widget])

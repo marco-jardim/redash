@@ -17,6 +17,17 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="userCountries">Country</label>
+                      <ui-select multiple tagging sortable="true" ng-model="$parent.user.countries" ng-disabled="disabled" style="width: 300px;">
+                        <ui-select-match placeholder="Select person...">{{$item.name}}</ui-select-match>
+
+                        <ui-select-choices repeat="country in (user.countries||countries) | filter: $select.search">
+                          <span ng-bind-html="country.name | trustAsHtml"></span>
+                        </ui-select-choices>
+                      </ui-select>
+                </div>
+
+                <div class="form-group">
                     <button class="btn btn-primary" ng-disabled="!userForm.$valid">Save</button>
                 </div>
             </form>

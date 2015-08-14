@@ -18,7 +18,6 @@ angular.module('redash', [
   ]).config(['$routeProvider', '$locationProvider', '$compileProvider', 'growlProvider', 'uiSelectConfig', '$httpProvider',
     function ($routeProvider, $locationProvider, $compileProvider, growlProvider, uiSelectConfig, $httpProvider) {
 
-      // $httpProvider.interceptors.push('RequestsInterceptor');
 
       if (featureFlags.clientSideMetrics) {
         Bucky.setOptions({
@@ -128,4 +127,9 @@ angular.module('redash', [
 
 
     }
-  ]);
+  ])
+  .config(['$httpProvider',function($httpProvider) {
+      //Http Intercpetor to check auth failures for xhr requests
+      $httpProvider.interceptors.push('authHttpResponseInterceptor');
+  }]);
+;

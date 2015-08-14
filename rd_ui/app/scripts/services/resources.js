@@ -606,8 +606,38 @@
     return WidgetResource;
   }
 
-  var RequestsInterceptor = function($http, $log){
-    $log.debug("request interceptor");
+  var authHttpResponseInterceptor = function($q, $location, $log, growl){
+
+
+    return {
+        response: function(response){
+          // $log.info("response:");
+          // $log.info(response);
+          return response || $q.when(response);
+        },
+        responseError: function(rejection) {
+
+            $log.debug("============ --- authHttpResponseInterceptor --- ============");
+
+            if (rejection.status === 401) {
+                $log.debug("Response Error 401",rejection);
+                $location.path('/login').search('returnTo', $location.path());
+            }
+            else if(rejection.status === 403){
+                $log.debug("Response 403");
+                $location.path('/login').search('returnTo', $location.path());
+                growl.addErrorMessage("You are unable to view this resource");
+            }
+            else{
+              $log.info(":D something unexpected on the authHttpResponseInterceptor");
+            }
+
+            $log.debug("============ --- authHttpResponseInterceptor --- ============");
+
+            return $q.reject(rejection);
+        }
+    }
+
   }
 
   angular.module('redash.services')
@@ -618,6 +648,6 @@
       .factory('Alert', ['$resource', '$http', Alert])
       .factory('AlertSubscription', ['$resource', AlertSubscription])
       .factory('Widget', ['$resource', 'Query', Widget])
-      .factory('RequestsInterceptor', ['$http', '$log', RequestsInterceptor])
+      .factory('authHttpResponseInterceptor', ['$q','$location', '$log', 'growl', authHttpResponseInterceptor])
       ;
 })();

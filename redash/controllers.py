@@ -759,12 +759,19 @@ class UserListAPI(BaseResource):
     def post(self):
         kwargs = request.get_json(force=True)
         kwargs['options'] = json.dumps(kwargs['options'])
-        kwargs['id'] = kwargs.pop('user_id')
+        # kwargs['id'] = kwargs.pop('user_id')
 
         user = models.User(**kwargs)
-        user.save()
 
-        return user.to_dict(with_query=False)
+        try:
+            user.save()
+            return user.to_dict()
+
+        except TypeError, e:
+            return e
+
+
+        
 
     @require_permission('create_user')
     def get(self):
@@ -780,7 +787,7 @@ class UserAPI(BaseResource):
     
     TODO:
     A user can only change another user's country:
-        * if he is the manager of the new country.
+        * if the current_user is the manager of the new country (if has the country).
         * if the target user belongs to a country of the current_user
     """
 

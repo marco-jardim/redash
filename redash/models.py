@@ -169,6 +169,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     groups = ArrayField(peewee.CharField, default=DEFAULT_GROUPS)
     countries = ArrayField(peewee.CharField)
     api_key = peewee.CharField(max_length=40, unique=True)
+    # status = peewee.BooleanField()
 
     class Meta:
         db_table = 'users'
@@ -185,6 +186,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
             'email': self.email,
             'groups': self.groups,
             'countries': self.countries,
+            # 'status': self.status,
             'gravatar_url': self.gravatar_url,
             'updated_at': self.updated_at,
             'created_at': self.created_at
@@ -225,12 +227,34 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
         return self.countries
 
     @classmethod
-    def get_by_email(cls, email):
-        return cls.get(cls.email == email)
+    def get_by_email(self, email):
+        return self.get(self.email == email)
 
     @classmethod
-    def get_by_api_key(cls, api_key):
-        return cls.get(cls.api_key == api_key)
+    def get_by_country(self, current_user_id, countries):
+        # logging.info(self.get().sql())
+        countriesStr = '\',\''.join(countries)
+        countriesStr = "'{}'".format(countriesStr)
+
+
+        queryStr = """
+            SELECT
+                *
+            FROM
+                users
+            WHERE
+                ARRAY[{countries}]::varchar[] @> countries
+                AND id != {current_user_id}
+                AND NOT ( ARRAY['manage']::varchar[] @> groups )
+        """.format(countries = countriesStr, current_user_id = current_user_id)
+
+
+        a = self.raw(queryStr).execute()
+        return a
+
+    @classmethod
+    def get_by_api_key(self, api_key):
+        return self.get(self.api_key == api_key)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.name, self.email)

@@ -89,9 +89,14 @@ def login():
         try:
             user = models.User.get_by_email(request.form['email'])
             if user and user.verify_password(request.form['password']):
-                remember = ('remember' in request.form)
-                login_user(user, remember=remember)
-                return redirect(request.args.get('next') or '/')
+                logging.info(user.status)
+                if user.status == True:
+                    remember = ('remember' in request.form)
+                    login_user(user, remember=remember)
+                    return redirect(request.args.get('next') or '/')
+                else:
+                    # Should we tell to talk with the adm?
+                    flash("Wrong email or password.")
             else:
                 flash("Wrong email or password.")
         except models.User.DoesNotExist:
@@ -761,6 +766,7 @@ class UserListAPI(BaseResource):
         kwargs = request.get_json(force=True)
         kwargs['options'] = json.dumps(kwargs['options'])
         # kwargs['id'] = kwargs.pop('user_id')
+        #kwargs['parent_user_id'] = current_user.id
 
         user = models.User(**kwargs)
 
@@ -776,7 +782,9 @@ class UserListAPI(BaseResource):
 
     @require_permission('create_user')
     def get(self):
+        # only return all if the current user is admin
         return [user.to_dict() for user in models.User.all()]
+        # return [user.to_dict() for user in models.User.get_by_country(current_user.id, current_user.countries)]
 
 
 class UserAPI(BaseResource):

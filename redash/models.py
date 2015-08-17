@@ -812,7 +812,57 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
 
         query = query.limit(limit)
 
+        logging.info(query.sql())
+
         return query
+
+    @classmethod
+    def filtered_dashs(self, countries):
+        countriesStr = '\',\''.join(countries)
+        countriesStr = "'{}'".format(countriesStr)
+
+
+        queryStr = """
+            SELECT
+                dashboards.id,
+                dashboards.name,
+                dashboards.user_email,
+                users.name,
+                users.name,
+                users.email
+                
+            FROM
+                dashboards AS dashboards
+            LEFT JOIN (
+                SELECT
+                    id,
+                    name,
+                    email
+                FROM
+                    users 
+                WHERE
+                    id IN (
+                        SELECT
+                            id
+                        FROM
+                            users
+                        WHERE
+                            groups @> ARRAY['{group_name}']::varchar[]
+                            AND ARRAY[{country_codes}]::varchar[] @> countries
+                    )
+                    
+                    
+            ) users
+            ON users.id = dashboards.user_id
+            WHERE
+                users.id IS NOT NULL
+
+        """
+        queryStr = queryStr.format(group_name = "manage", country_codes = countriesStr)
+
+        results = self.raw(queryStr).execute()
+
+        return results
 
     def save(self, *args, **kwargs):
         if not self.slug:

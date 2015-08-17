@@ -292,8 +292,23 @@ class DashboardRecentAPI(BaseResource):
 
 class DashboardListAPI(BaseResource):
     def get(self):
-        dashboards = [d.to_dict() for d in
-                      models.Dashboard.select().where(models.Dashboard.is_archived==False)]
+
+        result = list()
+
+        # TODO: remove hard coded permissions
+        if("manage" in current_user.groups):
+            result = [d.to_dict() for d in models.Dashboard.filtered_dashs(current_user.countries)]
+            return result
+
+        if(["default"] == current_user.groups):
+            # filter to show only the dashboards from the regional
+            result = [d.to_dict() for d in models.Dashboard.select().where(models.Dashboard.is_archived==False)] 
+            return result
+
+
+        return [d.to_dict() for d in models.Dashboard.select().where(models.Dashboard.is_archived==False)]
+        
+
 
         return dashboards
 

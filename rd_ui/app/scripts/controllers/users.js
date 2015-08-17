@@ -26,14 +26,14 @@
         'label': 'Email',
         'cellTemplate': '{{dataRow.email}}'
       },
-      {
-        'label': 'Parent User ID',
-        'cellTemplate': '{{dataRow.parent_user_id}}'
-      },
-      {
-        'label': 'Groups',
-        'cellTemplate': '{{dataRow.groups}}'
-      },
+      // {
+      //   'label': 'Parent User ID',
+      //   'cellTemplate': '{{dataRow.parent_user_id}}'
+      // },
+      // {
+      //   'label': 'Groups',
+      //   'cellTemplate': '{{dataRow.groups}}'
+      // },
       {
         'label': 'Countries',
         'cellTemplate': '{{dataRow.countries}}'

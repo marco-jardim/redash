@@ -557,17 +557,15 @@
         method: 'POST',
         transformRequest: [function(data) {
           var newData = _.extend({}, data);
-          console.log(data);
-          console.log(newData);
           countries = [];
-          _.each(newData.countries, function(country){
-            newCountryObj = new Object();
-            newCountryObj.name = Country.getCountryName(country);
-            newCountryObj.code = country;
-            countries.push(newCountryObj);
-          });
+
+          // just uncoment this if we start to allow receive multiple country_code
+          // _.each(data.countries, function(country){
+          //   countries.push(country.code);
+          // });
+
+          countries.push(data.countries.code);
           newData.countries = countries;
-          console.log(newData);
 
           return newData;
         }].concat($http.defaults.transformRequest)
@@ -651,11 +649,10 @@
                 growl.addErrorMessage("You are unable to view this resource");
             }
             else{
-              $log.info(rejection);
+              // $log.info(rejection);
               $log.info(":D something unexpected on the authHttpResponseInterceptor");
             }
 
-            $log.debug("\n\n");
 
             return $q.reject(rejection);
         }
@@ -911,14 +908,30 @@
       "ZW": 'Zimbabwe',
     };
 
-    actions = {
+
+    var actions = {
       getCountryName: function(countryCode){
         return countriesList[countryCode];
       },
-      getCurrentUserCountries: function(){
+      getCountriesDict: function(countriesCodes){
+        var countries = [];
+        var self = this;
+        _.each(countriesCodes, function(countryCode){
+          countryObj = {};
+          countryObj['code'] = countryCode;
+          countryObj['name'] = self.getCountryName(countryCode);
+          countries.push(countryObj);
+        });
+        return countries;
 
+      },
+      getCurrentUserCountries: function(){
+        var self = this;
+        return self.getCountriesDict(currentUser.countries);
       }
     }
+
+
     return actions;
 
   }

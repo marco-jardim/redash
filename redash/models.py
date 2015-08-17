@@ -169,7 +169,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     groups = ArrayField(peewee.CharField, default=DEFAULT_GROUPS)
     countries = ArrayField(peewee.CharField)
     api_key = peewee.CharField(max_length=40, unique=True)
-    # status = peewee.BooleanField()
+    status = peewee.BooleanField()
 
     class Meta:
         db_table = 'users'
@@ -186,7 +186,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
             'email': self.email,
             'groups': self.groups,
             'countries': self.countries,
-            # 'status': self.status,
+            'status': self.status,
             'gravatar_url': self.gravatar_url,
             'updated_at': self.updated_at,
             'created_at': self.created_at

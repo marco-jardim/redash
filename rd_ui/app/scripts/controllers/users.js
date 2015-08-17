@@ -40,11 +40,11 @@
       },
       {
         'label': 'Created At',
-        'cellTemplate': '{{dataRow.created_at}}'
+        'cellTemplate': '<span am-time-ago="dataRow.created_at"></span>'
       },
       {
         'label': 'Updated At',
-        'cellTemplate': '{{dataRow.updated_at}}'
+        'cellTemplate': '<span am-time-ago="dataRow.updated_at"></span>'
       },
       {
         'label': 'Status',
@@ -58,18 +58,22 @@
 
     $log.debug("we are on UserCtrl");
     $scope.$parent.pageTitle = "Users";
-
     $scope.userId = $routeParams.userId;
 
+    $scope.countries = Country.getCurrentUserCountries();
+
     if ($scope.userId === "new") {
-      $scope.countries = currentUser.countries;
       Events.record(currentUser, 'view', 'page', 'users/new');
       $scope.user = new User({options: {}});
+      // $log.debug($scope.countries);
     } else {
       Events.record(currentUser, 'view', 'user', $scope.userId);
       $scope.user = User.get({id: $scope.userId}, function(user) {
-      $log.debug($scope.userId);
-      $log.debug(user);
+
+        countries = Country.getCountriesDict(user.countries);
+        $scope.user.countries = countries[0];
+
+        $log.debug(countries);
       });
     }
 
@@ -77,29 +81,32 @@
       if ($scope.user.name === undefined || $scope.user.name === '') {
         // $scope.user.name = $scope.getDefaultName();
       }
-      countries = [];
-      oldUserCountriesObj = $scope.user.countries;
-
-      _.each($scope.user.countries, function(country){
-        countries.push(country['code']);
-      });
-
-      $scope.user.countries = countries;
 
       $scope.user.$save(function(user) {
-
-        $scope.user.countries = oldUserCountriesObj;
 
         growl.addSuccessMessage("Saved.");
 
         if ($scope.userId === "new") {
            $location.path('/users/' + user.id).replace();
+        } else {
+
+          // CODE FOR SINGLE COUNTRY
+          $scope.user = User.get({id: $scope.userId}, function(user){
+            countries = Country.getCountriesDict(user.countries);
+            $scope.user.countries = countries[0];
+          });
+          // END
+
         }
+
+        $location.path("/users");
 
       }, function(e) {
         growl.addErrorMessage("Failed saving user.");
       });
     };
+
+
   };
 
   angular.module('redash.controllers')

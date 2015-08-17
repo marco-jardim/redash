@@ -766,7 +766,7 @@ class UserListAPI(BaseResource):
         kwargs = request.get_json(force=True)
         kwargs['options'] = json.dumps(kwargs['options'])
         # kwargs['id'] = kwargs.pop('user_id')
-        #kwargs['parent_user_id'] = current_user.id
+        kwargs['parent_user_id'] = current_user.id
 
         user = models.User(**kwargs)
 

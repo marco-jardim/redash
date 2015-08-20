@@ -46,6 +46,8 @@ def ping():
 @app.route('/queries/<query_id>')
 @app.route('/queries/<query_id>/<anything>')
 @app.route('/personal')
+@app.route('/users')
+@app.route('/users/<user_id>')
 @app.route('/')
 @login_required
 def index(**kwargs):
@@ -58,6 +60,7 @@ def index(**kwargs):
         'name': current_user.name,
         'email': current_user.email,
         'groups': current_user.groups,
+        'countries': current_user.countries,
         'permissions': current_user.permissions
     }
 
@@ -86,9 +89,14 @@ def login():
         try:
             user = models.User.get_by_email(request.form['email'])
             if user and user.verify_password(request.form['password']):
-                remember = ('remember' in request.form)
-                login_user(user, remember=remember)
-                return redirect(request.args.get('next') or '/')
+                logging.info(user.status)
+                if user.status == True:
+                    remember = ('remember' in request.form)
+                    login_user(user, remember=remember)
+                    return redirect(request.args.get('next') or '/')
+                else:
+                    # Should we tell to talk with the adm?
+                    flash("Wrong email or password.")
             else:
                 flash("Wrong email or password.")
         except models.User.DoesNotExist:
@@ -143,6 +151,24 @@ def create_query_route():
                                 schedule=None)
 
     return redirect('/queries/{}'.format(query.id), 303)
+
+
+@app.route('/users/new', methods=['POST'])
+@login_required
+def create_user_route():
+    query = request.form.get('user', None)
+    user_id = request.form.get('user_id', None)
+
+    if query is None or user_id is None:
+        abort(400)
+
+    query = models.User.create(name="New Query",
+                                query=query,
+                                data_source=user_id,
+                                user=current_user._get_current_object(),
+                                schedule=None)
+
+    return redirect('/users/{}'.format(query.id), 303)
 
 
 class BaseResource(Resource):
@@ -266,8 +292,23 @@ class DashboardRecentAPI(BaseResource):
 
 class DashboardListAPI(BaseResource):
     def get(self):
-        dashboards = [d.to_dict() for d in
-                      models.Dashboard.select().where(models.Dashboard.is_archived==False)]
+
+        result = list()
+
+        # TODO: remove hard coded permissions
+        if("manage" in current_user.groups):
+            result = [d.to_dict() for d in models.Dashboard.filtered_dashs(current_user.countries)]
+            return result
+
+        if(["default"] == current_user.groups):
+            # filter to show only the dashboards from the regional
+            result = [d.to_dict() for d in models.Dashboard.select().where(models.Dashboard.is_archived==False)] 
+            return result
+
+
+        return [d.to_dict() for d in models.Dashboard.select().where(models.Dashboard.is_archived==False)]
+        
+
 
         return dashboards
 
@@ -729,6 +770,81 @@ api.add_resource(AlertAPI, '/api/alerts/<alert_id>', endpoint='alert')
 api.add_resource(AlertSubscriptionListResource, '/api/alerts/<alert_id>/subscriptions', endpoint='alert_subscriptions')
 api.add_resource(AlertSubscriptionResource, '/api/alerts/<alert_id>/subscriptions/<subscriber_id>', endpoint='alert_subscription')
 api.add_resource(AlertListAPI, '/api/alerts', endpoint='alerts')
+
+
+
+
+class UserListAPI(BaseResource):
+
+    @require_permission('create_user')
+    def post(self):
+        kwargs = request.get_json(force=True)
+        kwargs['options'] = json.dumps(kwargs['options'])
+        # kwargs['id'] = kwargs.pop('user_id')
+        kwargs['parent_user_id'] = current_user.id
+
+        user = models.User(**kwargs)
+
+        try:
+            user.save()
+            return user.to_dict()
+
+        except TypeError, e:
+            return e
+
+
+        
+
+    @require_permission('create_user')
+    def get(self):
+        # only return all if the current user is admin
+        # return [user.to_dict() for user in models.User.all()]
+        return [user.to_dict() for user in models.User.get_by_country(current_user.id, current_user.countries)]
+
+
+class UserAPI(BaseResource):
+
+    """
+    To view specific users, 'edit_user' permission is needed.
+    
+    * group management is made on /admin interface
+    
+    TODO:
+    A user can only change another user's country:
+        * if the current_user is the manager of the new country (if has the country).
+        * if the target user belongs to a country of the current_user
+    """
+
+    @require_permission('edit_user')
+    def get(self, user_id):
+        user = models.User.get_by_id(user_id)
+        return user.to_dict()
+
+    @require_permission('edit_user')
+    def post(self, user_id):
+        kwargs = request.get_json(force=True)
+        if 'options' in kwargs:
+            kwargs['options'] = json.dumps(kwargs['options'])
+        kwargs.pop('id', None)
+        kwargs.pop("groups") # prevent users to change groups - only admin should change
+        kwargs.pop('gravatar_url', None)
+        logging.info(kwargs)
+
+        update = models.User.update(**kwargs).where(models.User.id == user_id)
+        update.execute()
+
+        user = models.User.get_by_id(user_id)
+
+        return user.to_dict()
+
+    @require_permission('admin')
+    def delete(self, user_id):
+        user = models.User.get(models.User.id == user_id)
+        user.delete_instance()
+
+api.add_resource(UserListAPI, '/api/users', endpoint='users')
+api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
+
 
 @app.route('/<path:filename>')
 def send_static(filename):

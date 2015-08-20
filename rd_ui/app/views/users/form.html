@@ -1,0 +1,24 @@
+<form name="userForm" ng-submit="saveChanges()">
+    
+    <div class="form-group">
+        <label for="userName">Name</label>
+        <input type="string" class="form-control" name="userName" ng-model="user.name" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="userEmail">Email</label>
+        <input type="string" class="form-control" name="userEmail" ng-model="user.email" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="userCountries">Countries</label>
+        <input type="string" class="form-control" name="userCountries" ng-model="user.email" required>
+    </div>
+
+    <div class="form-group">
+        <label for="userGroups">Groups</label>
+        <input type="string" class="form-control" name="userGroups" ng-model="user.email" required>
+    </div>
+    
+    <button class="btn btn-primary" ng-disabled="!userForm.$valid">Save</button>
+</form>

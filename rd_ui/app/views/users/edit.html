@@ -1,0 +1,36 @@
+<div class="container">
+    <ol class="breadcrumb">
+        <li><a href="/users">Users</a></li>
+        <li class="active">{{user.name || "New"}}</li>
+    </ol>
+    <div class="row">
+        <div class="col-md-8">
+            <form name="userForm" ng-submit="saveChanges()" class="form">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="string" placeholder="" class="form-control" ng-model="user.name">
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="string" placeholder="" class="form-control" ng-model="user.email">
+                </div>
+
+                <div class="form-group">
+                    <label for="userCountries">Country</label>
+                      <ui-select multiple tagging sortable="true" ng-model="$parent.user.countries" ng-disabled="disabled" style="width: 300px;">
+                        <ui-select-match placeholder="Select person...">{{$item.name}}</ui-select-match>
+
+                        <ui-select-choices repeat="country in (user.countries||countries) | filter: $select.search">
+                          <span ng-bind-html="country.name | trustAsHtml"></span>
+                        </ui-select-choices>
+                      </ui-select>
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" ng-disabled="!userForm.$valid">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

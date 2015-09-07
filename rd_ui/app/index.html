@@ -78,6 +78,9 @@
             <li ng-show="currentUser.hasPermission('admin')">
                 <a href="/data_sources">Data Sources</a>
             </li>
+            <li ng-show="currentUser.hasPermission('create_user')">
+                <a href="/users">Users</a>
+            </li>
         </ul>
         <form class="navbar-form navbar-left" role="search" ng-submit="searchQueries()">
             <div class="form-group">
@@ -87,6 +90,7 @@
         </form>
         <ul class="nav navbar-nav navbar-right">
             <p class="navbar-text avatar" ng-show="currentUser.id" ng-cloak>
+            <span class="label label-info" style="margin-right: 10px;">{{currentUser.name}}</span>
                 <img ng-src="{{currentUser.gravatar_url}}" class="img-circle" alt="{{currentUser.name}}"/>
                 <a target="_self" href="/logout" id="logout" title="Logout">
                     <span class="glyphicon glyphicon-log-out"></span>
@@ -140,7 +144,7 @@
 <script src="/bower_components/bucky/bucky.js"></script>
 <script src="/bower_components/pace/pace.js"></script>
 <script src="/bower_components/mustache/mustache.js"></script>
-<script src="/bower_components/canvg/rgbcolor.js"></script> 
+<script src="/bower_components/canvg/rgbcolor.js"></script>
 <script src="/bower_components/canvg/StackBlur.js"></script>
 <script src="/bower_components/canvg/canvg.js"></script>
 <script src="/bower_components/leaflet/dist/leaflet.js"></script>
@@ -156,6 +160,7 @@
 <script src="/scripts/controllers/dashboard.js"></script>
 <script src="/scripts/controllers/admin_controllers.js"></script>
 <script src="/scripts/controllers/data_sources.js"></script>
+<script src="/scripts/controllers/users.js"></script>
 <script src="/scripts/controllers/query_view.js"></script>
 <script src="/scripts/controllers/query_source.js"></script>
 <script src="/scripts/visualizations/base.js"></script>

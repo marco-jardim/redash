@@ -15,8 +15,10 @@ angular.module('redash', [
     'ngRoute',
     'ui.select',
     'naif.base64'
-  ]).config(['$routeProvider', '$locationProvider', '$compileProvider', 'growlProvider', 'uiSelectConfig',
-    function ($routeProvider, $locationProvider, $compileProvider, growlProvider, uiSelectConfig) {
+  ]).config(['$routeProvider', '$locationProvider', '$compileProvider', 'growlProvider', 'uiSelectConfig', '$httpProvider',
+    function ($routeProvider, $locationProvider, $compileProvider, growlProvider, uiSelectConfig, $httpProvider) {
+
+
       if (featureFlags.clientSideMetrics) {
         Bucky.setOptions({
           host: '/api/metrics'
@@ -101,6 +103,15 @@ angular.module('redash', [
         controller: 'DataSourcesCtrl'
       });
 
+      $routeProvider.when('/users/:userId', {
+        templateUrl: '/views/users/edit.html',
+        controller: 'UserCtrl'
+      });
+      $routeProvider.when('/users', {
+        templateUrl: '/views/users/list.html',
+        controller: 'UsersCtrl'
+      });
+
       $routeProvider.when('/', {
         templateUrl: '/views/personal.html',
         controller: 'PersonalIndexCtrl'
@@ -116,4 +127,9 @@ angular.module('redash', [
 
 
     }
-  ]);
+  ])
+  .config(['$httpProvider',function($httpProvider) {
+      //Http Intercpetor to check auth failures for xhr requests
+      $httpProvider.interceptors.push('authHttpResponseInterceptor');
+  }]);
+;

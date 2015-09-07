@@ -138,6 +138,7 @@ class Group(BaseModel):
     name = peewee.CharField(max_length=100)
     permissions = ArrayField(peewee.CharField, default=DEFAULT_PERMISSIONS)
     tables = ArrayField(peewee.CharField)
+    countries = ArrayField(peewee.CharField)
     created_at = DateTimeTZField(default=datetime.datetime.now)
 
     class Meta:
@@ -149,6 +150,7 @@ class Group(BaseModel):
             'name': self.name,
             'permissions': self.permissions,
             'tables': self.tables,
+            'countries': self.countries,
             'created_at': self.created_at
         }
 
@@ -160,20 +162,31 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     DEFAULT_GROUPS = ['default']
 
     id = peewee.PrimaryKeyField()
+    parent_user_id = peewee.IntegerField()
     name = peewee.CharField(max_length=320)
     email = peewee.CharField(max_length=320, index=True, unique=True)
     password_hash = peewee.CharField(max_length=128, null=True)
     groups = ArrayField(peewee.CharField, default=DEFAULT_GROUPS)
+    countries = ArrayField(peewee.CharField)
     api_key = peewee.CharField(max_length=40, unique=True)
+    status = peewee.BooleanField()
 
     class Meta:
         db_table = 'users'
 
+    @classmethod
+    def all(cls):
+        return cls.select().order_by(cls.id.asc())
+
     def to_dict(self):
         return {
             'id': self.id,
+            'parent_user_id': self.parent_user_id,
             'name': self.name,
             'email': self.email,
+            'groups': self.groups,
+            'countries': self.countries,
+            'status': self.status,
             'gravatar_url': self.gravatar_url,
             'updated_at': self.updated_at,
             'created_at': self.created_at
@@ -209,13 +222,39 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
 
         return self._allowed_tables
 
-    @classmethod
-    def get_by_email(cls, email):
-        return cls.get(cls.email == email)
+    @property
+    def allowed_countries(self):
+        return self.countries
 
     @classmethod
-    def get_by_api_key(cls, api_key):
-        return cls.get(cls.api_key == api_key)
+    def get_by_email(self, email):
+        return self.get(self.email == email)
+
+    @classmethod
+    def get_by_country(self, current_user_id, countries):
+        # logging.info(self.get().sql())
+        countriesStr = '\',\''.join(countries)
+        countriesStr = "'{}'".format(countriesStr)
+
+
+        queryStr = """
+            SELECT
+                *
+            FROM
+                users
+            WHERE
+                ARRAY[{countries}]::varchar[] @> countries
+                AND id != {current_user_id}
+                AND NOT ( ARRAY['manage']::varchar[] @> groups )
+        """.format(countries = countriesStr, current_user_id = current_user_id)
+
+
+        a = self.raw(queryStr).execute()
+        return a
+
+    @classmethod
+    def get_by_api_key(self, api_key):
+        return self.get(self.api_key == api_key)
 
     def __unicode__(self):
         return u'%s (%s)' % (self.name, self.email)
@@ -225,6 +264,56 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
 
     def verify_password(self, password):
         return self.password_hash and pwd_context.verify(password, self.password_hash)
+
+class Area(BaseModel):
+
+    class Meta:
+        db_table = 'areas'
+
+    subregion_code = peewee.CharField(max_length=250, null=True)
+    region_code = peewee.CharField(max_length=250, null=True)
+    region_name = peewee.CharField(max_length=250, null=True)
+    subregion_name = peewee.CharField(max_length=250, null=True)
+    bool_active = peewee.CharField(max_length=250, null=True)
+    telephone_code = peewee.CharField(max_length=250, null=True)
+    continent_code = peewee.CharField(max_length=250, null=True)
+    has_billing = peewee.CharField(max_length=250, null=True)
+    country_capital = peewee.CharField(max_length=250, null=True)
+    country_name = peewee.CharField(max_length=250, null=True)
+    city_name = peewee.CharField(max_length=250, null=True)
+    currency_code = peewee.CharField(max_length=250, null=True)
+    country_code = peewee.CharField(max_length=250, null=True)
+    subregion_manager = peewee.CharField(max_length=250, null=True)
+    continent_name = peewee.CharField(max_length=250, null=True)
+    timezone = peewee.CharField(max_length=250, null=True)
+    regional_email_group = peewee.CharField(max_length=250, null=True)
+    city_code = peewee.CharField(max_length=250, null=True)
+
+    def to_dict(self):
+        return {
+            'subregion_code': self.subregion_code,
+            'region_code': self.region_code,
+            'region_name': self.region_name,
+            'subregion_name': self.subregion_name,
+            'bool_active': self.bool_active,
+            'telephone_code': self.telephone_code,
+            'continent_code': self.continent_code,
+            'has_billing': self.has_billing,
+            'country_capital': self.country_capital,
+            'country_name': self.country_name,
+            'city_name': self.city_name,
+            'currency_code': self.currency_code,
+            'country_code': self.country_code,
+            'subregion_manager': self.subregion_manager,
+            'continent_name': self.continent_name,
+            'timezone': self.timezone,
+            'regional_email_group': self.regional_email_group,
+            'city_code': self.city_code
+        }
+
+    def __unicode__(self):
+        return unicode(self.city_code)
+
 
 
 class ActivityLog(BaseModel):
@@ -723,7 +812,57 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
 
         query = query.limit(limit)
 
+        logging.info(query.sql())
+
         return query
+
+    @classmethod
+    def filtered_dashs(self, countries):
+        countriesStr = '\',\''.join(countries)
+        countriesStr = "'{}'".format(countriesStr)
+
+
+        queryStr = """
+            SELECT
+                dashboards.id,
+                dashboards.name,
+                dashboards.user_email,
+                users.name,
+                users.name,
+                users.email
+                
+            FROM
+                dashboards AS dashboards
+            LEFT JOIN (
+                SELECT
+                    id,
+                    name,
+                    email
+                FROM
+                    users 
+                WHERE
+                    id IN (
+                        SELECT
+                            id
+                        FROM
+                            users
+                        WHERE
+                            groups @> ARRAY['{group_name}']::varchar[]
+                            AND ARRAY[{country_codes}]::varchar[] @> countries
+                    )
+                    
+                    
+            ) users
+            ON users.id = dashboards.user_id
+            WHERE
+                users.id IS NOT NULL
+
+        """
+        queryStr = queryStr.format(group_name = "manage", country_codes = countriesStr)
+
+        results = self.raw(queryStr).execute()
+
+        return results
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -801,7 +940,7 @@ class Widget(ModelTimestampsMixin, BaseModel):
             d['visualization'] = self.visualization.to_dict()
 
         return d
-    
+
     def __unicode__(self):
         return u"%s" % self.id
 
